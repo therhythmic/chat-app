@@ -1,0 +1,27 @@
+"use server";
+
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+
+export async function sendCode(email: string): Promise<{ error?: string }> {
+  const clean = email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) return { error: "Enter a valid email." };
+
+  // Only invited people (or existing members) can sign in.
+  const admin = createAdminClient();
+  const { data: invite } = await admin.from("invites").select("email").ilike("email", clean).limit(1).maybeSingle();
+  if (!invite) return { error: "This email hasn't been invited yet. Ask a teammate to invite you." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: clean,
+    options: { shouldCreateUser: true, emailRedirectTo: `${process.env.APP_URL ?? ""}/auth/confirm` },
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function verifyCode(email: string, token: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: token.trim(), type: "email" });
+  return error ? { error: "That code didn't work. Check it, or send a new one." } : {};
+}
