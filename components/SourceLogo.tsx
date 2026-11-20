@@ -38,13 +38,8 @@ export function SourceLogo({ source, size = 16 }: { source: Source; size?: numbe
     case "messages":
       return (
         <svg viewBox="0 0 24 24" style={s} aria-label="Messages">
-          <defs>
-            <linearGradient id="imsg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#5BF675" />
-              <stop offset="1" stopColor="#0CBD2A" />
-            </linearGradient>
-          </defs>
-          <rect width="24" height="24" rx="5.3" fill="url(#imsg)" />
+          {/* Solid fill: a shared gradient id breaks when the first copy sits in a hidden sidebar. */}
+          <rect width="24" height="24" rx="5.3" fill="#1FCB3F" />
           <path fill="#fff" d="M12 4.154a8.809 7.337 0 0 1 8.809 7.338A8.809 7.337 0 0 1 12 18.828a8.809 7.337 0 0 1-2.492-.303A8.656 7.337 0 0 1 5.93 19.93a9.929 7.337 0 0 0 1.54-2.155 8.809 7.337 0 0 1-4.279-6.283A8.809 7.337 0 0 1 12 4.154" />
         </svg>
       );
