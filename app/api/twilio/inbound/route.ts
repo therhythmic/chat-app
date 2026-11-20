@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { after, type NextRequest } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 import { suggestProject } from "@/lib/ai";
 
 const EMPTY_TWIML = '<?xml version="1.0" encoding="UTF-8"?><Response></Response>';
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   const workspaceId = process.env.DEFAULT_WORKSPACE_ID;
   const from = params.From;
   const sid = params.MessageSid;
-  if (!workspaceId || !from || !sid) return twiml();
+  if (!workspaceId || !from || !sid || !hasAdminKey()) return twiml();
 
   const numMedia = Number(params.NumMedia ?? 0);
   const body = (params.Body ?? "").trim() || (numMedia > 0 ? `[${numMedia} attachment${numMedia > 1 ? "s" : ""}]` : "");

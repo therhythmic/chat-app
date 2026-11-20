@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,9 +8,12 @@ export async function sendCode(email: string): Promise<{ error?: string }> {
   const clean = email.trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) return { error: "Enter a valid email." };
 
+  if (!hasAdminKey()) return { error: "Email sign-in isn't switched on yet. Use Google for now." };
+
   // Only invited people (or existing members) can sign in.
   const admin = createAdminClient();
-  const { data: invite } = await admin.from("invites").select("email").ilike("email", clean).limit(1).maybeSingle();
+  const { data: invite, error: inviteError } = await admin.from("invites").select("email").ilike("email", clean).limit(1).maybeSingle();
+  if (inviteError) return { error: "Nōnia isn't fully set up yet. Try again in a few minutes." };
   if (!invite) return { error: "This email hasn't been invited yet. Ask a teammate to invite you." };
 
   const supabase = await createClient();

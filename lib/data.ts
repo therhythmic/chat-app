@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasAdminKey } from "@/lib/supabase/admin";
 import type { Conversation, Person, Project } from "@/lib/types";
 
 export const getContext = cache(async () => {
@@ -22,7 +22,7 @@ export const getContext = cache(async () => {
 
   // Someone who signed up before being invited (e.g. with Google) joins on their next visit.
   const email = (claims?.claims?.email as string | undefined)?.toLowerCase();
-  if (!membership && email) {
+  if (!membership && email && hasAdminKey()) {
     const admin = createAdminClient();
     const { data: invites } = await admin.from("invites").select("workspace_id, display_name, role").ilike("email", email);
     for (const inv of invites ?? []) {
