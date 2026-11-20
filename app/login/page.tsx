@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { sendCode, verifyCode } from "./actions";
+import { sendCode } from "./actions";
 import { SourceLogo } from "@/components/SourceLogo";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,9 +17,7 @@ function GoogleMark() {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, start] = useTransition();
@@ -37,10 +34,6 @@ export default function LoginPage() {
               const r = await sendCode(email);
               if (r.error) setError(r.error);
               else setSent(true);
-            } else {
-              const r = await verifyCode(email, code);
-              if (r.error) setError(r.error);
-              else router.replace("/");
             }
           });
         }}
@@ -49,7 +42,7 @@ export default function LoginPage() {
         <div>
           <h1 style={{ margin: "8px 0 4px", fontSize: 24 }}>Sign in to Nōnia</h1>
           <p className="muted" style={{ margin: 0 }}>
-            {sent ? `We emailed a code to ${email}. Enter it below.` : "Use Google, or we'll email you a sign-in code."}
+            {sent ? `We emailed a sign-in link to ${email}. Open it on this device to finish.` : "Use Google, or we'll email you a sign-in link."}
           </p>
         </div>
         {!sent && (
@@ -79,18 +72,15 @@ export default function LoginPage() {
             Email
             <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </label>
-        ) : (
-          <label className="field">
-            Code
-            <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value)} />
-          </label>
-        )}
+        ) : null}
         {error && <p className="error">{error}</p>}
-        <button className="btn dark block" disabled={pending}>
-          {pending ? "One moment…" : sent ? "Sign in" : "Email me a code"}
-        </button>
+        {!sent && (
+          <button className="btn dark block" disabled={pending}>
+            {pending ? "One moment…" : "Email me a link"}
+          </button>
+        )}
         {sent && (
-          <button type="button" className="linkbtn muted" onClick={() => { setSent(false); setCode(""); }}>
+          <button type="button" className="linkbtn muted" onClick={() => setSent(false)}>
             Use a different email
           </button>
         )}

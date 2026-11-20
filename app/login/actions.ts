@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export async function sendCode(email: string): Promise<{ error?: string }> {
@@ -15,7 +16,7 @@ export async function sendCode(email: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: clean,
-    options: { shouldCreateUser: true, emailRedirectTo: `${process.env.APP_URL ?? ""}/auth/confirm` },
+    options: { shouldCreateUser: true, emailRedirectTo: `${process.env.APP_URL || (await headers()).get("origin") || ""}/auth/confirm` },
   });
   return error ? { error: error.message } : {};
 }
